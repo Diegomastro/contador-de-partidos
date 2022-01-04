@@ -2,10 +2,11 @@ import openpyxl
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget
 from ui import ui_main_window
 from datetime import datetime
-
-
+import threading
+import time
 class MainWindow:
-    path = None
+    # path = None
+    path = "resultados.xlsx"
     wins = 0
     losses = 0
     wb = None
@@ -36,6 +37,10 @@ class MainWindow:
         self.ui.btn_wins_plus.clicked.connect(self.on_btn_wins_plus_clicked)
         self.ui.btn_excel.clicked.connect(self.on_btn_excel_clicked)
 
+    def thread_reset_btn_name(self):
+        time.sleep(3)
+        self.ui.btn_excel.setText("MANDAR AL EXCEL")
+
     # definir funciones de slots
     def on_btn_loss_minus_clicked(self):
         self.losses -= 1
@@ -65,12 +70,20 @@ class MainWindow:
 
     def on_btn_excel_clicked(self):
         if self.wb is None:
-            print(self.path)
-            self.wb = openpyxl.load_workbook("resultados.xlsx")
+            try:
+                self.wb = openpyxl.load_workbook(filename=self.path)
+            except FileNotFoundError:
+                self.wb = openpyxl.Workbook()
+
         today = datetime.today()
         fecha = today.strftime('%d-%m-%Y')
         hora = today.strftime('%H:%M')
         row = (fecha, hora, self.wins, self.losses)
 
         self.wb.active.append(row)
-        self.wb.save("resultados.xlsx")
+        self.wb.save(self.path)
+        self.ui.btn_excel.setText("ENVIADO!")
+        t1 = threading.Thread(name="Hello1", target=self.thread_reset_btn_name)
+        t1.start()
+
+
